@@ -9,23 +9,36 @@ int hash(String& key, int offset)
     return value % TABLE_SIZE;
 }
 
-bool insert_into_hashmap(String& key, int index, hash_node** hash_table)
+int insert_into_hashmap(String& key, int index, hash_node** hash_table)
 {
     hash_node* node = new hash_node;
     node->index = index;
     node->key = key;
     int index_in_hashmap;
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < MAX_OFFSET; i++)
     {    
         index_in_hashmap = hash(key, i);
         if (hash_table[index_in_hashmap] == nullptr) {
             hash_table[index_in_hashmap] = node;
-            return true;
+            return index_in_hashmap;
         }
     }
-    return false;
+    return -1;
 }
 
+
+int index_of_city(String& name, hash_node** hash_table)
+{
+    int index;
+    for (int i = 0; i < MAX_OFFSET; i++)
+    {
+        index = hash(name, i);
+        if (hash_table[index] != nullptr && hash_table[index]->key == name){
+            return hash_table[index]->index;
+        }
+    }
+    return -1;
+}
 hash_node** allocate_hash_table()
 {
     hash_node** table = new hash_node*[TABLE_SIZE];

@@ -1,4 +1,10 @@
 #pragma once
+#include "list.h"
 
-int* allocate_adjacency_matrix(int n);
-int index_in_matrix(int index1, int index2, int n);
+struct city_in_graph {
+    int index;
+    int distance;
+};
+
+List<city_in_graph>* allocate_adjacency_matrix(int n);
+void free_adjacency_matrix(int n, List<city_in_graph>* graph);

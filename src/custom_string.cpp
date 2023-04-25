@@ -13,6 +13,8 @@ String::String(const char* other)
 {
     std::size_t length = strlen(other);
     str = new char[length + 1];
+    size = length + 1;
+    strcpy(str, other);
     str[length] = '\0';
 }
 
@@ -20,13 +22,14 @@ String::String(const String& other)
 {
     std::size_t length = other.length();
     str = new char[length + 1];
-    strcmp(str, other.str);
+    size = length + 1;
+    strcpy(str, other.str);
     str[length] = '\0';
 }
 
 String::String(String&& other)
 {
-    str =  other.str;
+    str = other.str;
     other.str = nullptr;
 }
 
@@ -34,7 +37,9 @@ String& String::operator=(const char* other)
 {
     std::size_t length = strlen(other);
     if (length + 1 > size){
-        expandToSize(length+1);
+        delete[] str;
+        str = new char[length + 1];
+        size = length + 1;
     }
     strcpy(str, other);
     str[length] = '\0';
@@ -45,41 +50,20 @@ String& String::operator=(const String& other)
 {
     String tmp(other);
     std::swap(str, tmp.str);
+    std::swap(size, tmp.size);
     return *this;
 }
 
 String& String::operator=(String&& other)
 {
     std::swap(str, other.str);
-    return *this;
-}
-
-String& String::operator+=(char c)
-{
-    std::size_t currentLength = length();
-    if (currentLength + 2 > size)
-    {
-        expandToSize(size*2);
-    }
-    str[currentLength] = c;
-    str[currentLength + 1] = '\0';
+    std::swap(size, other.size);
     return *this;
 }
 
 std::size_t String::length() const
 {
     return strlen(str);
-}
-
-void String::expandToSize(std::size_t newSize)
-{
-    String tmp(*this);
-    std::size_t actualNewSize = (std::size_t) pow(2, ceil(log2(newSize)));
-    char* newStr = new char[actualNewSize];
-    size = actualNewSize;
-    strcpy(newStr, str);
-    delete[] str;
-    str = newStr;
 }
 
 String::~String()
@@ -125,16 +109,15 @@ char convert_char(char c)
 }
 
 const int DIGITGROUP = 5;
-const int BASE = 'A' - 'Z' + 11; // [A-Z0-9]
+const int BASE = 'Z' - 'A' + 11; // [A-Z0-9]
 
-unsigned int String::hash() const
+long long String::hash() const
 {
-    unsigned int value = 0;
+    int value = 0;
     int digitPos = 0;
     for (char* curr = str; *curr != '\0'; curr++)
     {
         char c = *curr;
-        c = convert_char(c);
         int digit;
         if (c >= 'A' && c <= 'Z')
         {
@@ -161,4 +144,9 @@ long long String::hash1() const {
         p_pow = (p_pow * p) % m;
     }
     return hash_value;
+}
+
+bool String::operator==(const String& other) const 
+{
+    return strcmp(str, other.str) == 0;
 }

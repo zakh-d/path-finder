@@ -2,6 +2,7 @@
 #include <cctype>
 #include <cstring>
 #include "list.h"
+#include "vector.h"
 #include "custom_string.h"
 #include "graph.h"
 #include "hashed_city.h"
@@ -16,7 +17,6 @@ struct city_t
     String name;
     int x, y;
 };
-
 
 bool is_part_of_name(char c)
 {
@@ -62,12 +62,45 @@ void parse_city(char** map, city_t* city, int width, int height)
     }
 }
 
+void parse_flight(hash_node** hashmap, List<city_in_graph>* graph)
+{
+    std::cout << "start\n";
+    String origin, dest;
+    int distance;
+    std::cin >> origin >> dest >> distance;
+    std::cout << origin << " " << dest << " ";
+    int index_origin = index_of_city(origin, hashmap);
+    int index_dest = index_of_city(dest, hashmap);
+    std::cout << index_origin << " " << index_dest << std::endl;
+    if (index_origin == -1 || index_dest == -1) return;
+    List<city_in_graph>& adjacency_list = graph[index_origin];
+    bool found = false;
+    for (Node<city_in_graph>* curr = adjacency_list.getHead(); curr != nullptr; curr = curr->next)
+    {
+        if (curr->data.index == index_dest)
+        {
+            if (curr->data.distance > distance)
+            {
+                curr->data.distance = distance;
+            }
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        adjacency_list.append({index_dest, distance});
+    }
+    std::cout << "finish\n";
+}
+
 int main()
 {
     int width, height;
     std::cin >> width >> height;
     char **map = new char*[height];
-    List<city_t*> cities;
+    Vector<city_t*> cities;
     city_t* city;
     for (int i = 0; i < height; i++)
     {
@@ -81,38 +114,57 @@ int main()
                 city = new city_t;
                 city->x = j;
                 city->y = i;
-                cities.append(city);
+                cities.push_back(city);
             }
         }
     }
 
-    int* matrix = allocate_adjacency_matrix(cities.getSize());
+    List<city_in_graph>* graph = allocate_adjacency_matrix(cities.getSize());
     std::cout << "Total cities: " << cities.getSize() << std::endl;
     int counter = 0;
 
     hash_node** hashtable = allocate_hash_table();
-    int i = 0;
-    for (Node<city_t*>* curr = cities.getHead(); curr != nullptr; curr = curr->next, i++)
+    // for (Node<city_t*>* curr = cities.getHead(); curr != nullptr; curr = curr->next, i++)
+    for (int i = 0; i < cities.getSize(); i++)
     {
-        city = curr->data;
+        city = cities[i];
         parse_city(map, city, width, height);
-        if (insert_into_hashmap(city->name, i, hashtable))
+        // std::cout << city->name << hash(city->name, 0) << std::endl;
+        // std::cout << city->name.hash() << std::endl;
+        int index = insert_into_hashmap(city->name, i, hashtable);
+        if (index >= 0)
         {
             counter++;
+
         }
     }
 
     std::cout << "Cities in hash table: " << counter << std::endl;
+
+    int flightsCount;
+    std::cin >> flightsCount;
+
+    for (int i = 0; i < flightsCount; i++)
+    {
+        parse_flight(hashtable, graph);
+    }
+
 
     for (int i = 0; i < height; i++)
     {
         delete[] map[i];
     }
     delete[] map;
-    delete[] matrix;
 
+    //for (Node<city_t*>* curr = cities.getHead(); curr != nullptr; curr = curr->next)
+    for (int i = 0; i < cities.getSize(); i++)
+    {
+        delete cities[i];
+    }
+
+    
+    free_adjacency_matrix(cities.getSize(), graph);
     free_hash_table(hashtable);
-
 
     return 0;
 }
