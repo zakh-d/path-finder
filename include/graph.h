@@ -6,5 +6,5 @@ struct city_in_graph {
     int distance;
 };
 
-List<city_in_graph>* allocate_adjacency_matrix(int n);
-void free_adjacency_matrix(int n, List<city_in_graph>* graph);
+List<city_in_graph>* allocate_adjacency_list(int n);
+void free_adjacency_list(int n, List<city_in_graph>* graph);

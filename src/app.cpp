@@ -119,7 +119,7 @@ int main()
         }
     }
 
-    List<city_in_graph>* graph = allocate_adjacency_matrix(cities.getSize());
+    List<city_in_graph>* graph = allocate_adjacency_list(cities.getSize());
     std::cout << "Total cities: " << cities.getSize() << std::endl;
     int counter = 0;
 
@@ -163,7 +163,7 @@ int main()
     }
 
     
-    free_adjacency_matrix(cities.getSize(), graph);
+    free_adjacency_list(cities.getSize(), graph);
     free_hash_table(hashtable);
 
     return 0;
