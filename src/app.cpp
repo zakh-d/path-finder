@@ -6,93 +6,79 @@
 #include "custom_string.h"
 #include "graph.h"
 #include "hashed_city.h"
+#include "parser.h"
 
-struct coord_t
-{
-    int x, y;
-};
-
-struct city_t 
-{
-    String name;
-    int x, y;
-};
-
-bool is_part_of_name(char c)
-{
-    if (c == '*' || c == '#' || c == '.')
-        return false;
-    return true;
-}
-
-void parse_city_name(char* line, int x, int width, String& dest)
-{
-    int l = x, r = x;
-
-    while (l-1 >= 0 && r + 1 < width &&(is_part_of_name(line[l - 1]) || is_part_of_name(line[r + 1])))
-    {
-        if (is_part_of_name(line[l - 1])) l--;
-        if (is_part_of_name(line[r + 1])) r++;
-    }
-
-    char tmp = line[r+1];
-    line[r+1] = '\0';
-    dest = &line[l];
-    line[r+1] = tmp;
-}
-
-void parse_city(char** map, city_t* city, int width, int height)
-{
-    coord_t directions[8] = {
-        {-1, 1}, {0, 1}, {1, 1},
-        {-1, 0},         {1, 0},
-        {-1, -1}, {0, -1}, {1, -1}
-    };
-
-    for (coord_t d: directions)
-    {
-        if (city->x + d.x < 0 || city->y + d.y < 0 || city->x + d.x >= width || city->y + d.y >= height)
-            continue;
-        
-        if (is_part_of_name(map[city->y + d.y][city->x + d.x]))
-        {
-            parse_city_name(map[city->y + d.y], city->x + d.x, width, city->name);
-            break;
-        }
-    }
-}
-
-void parse_flight(hash_node** hashmap, List<city_in_graph>* graph)
-{
-    std::cout << "start\n";
-    String origin, dest;
+struct search_node {
+    int x;
+    int y;
     int distance;
-    std::cin >> origin >> dest >> distance;
-    std::cout << origin << " " << dest << " ";
-    int index_origin = index_of_city(origin, hashmap);
-    int index_dest = index_of_city(dest, hashmap);
-    std::cout << index_origin << " " << index_dest << std::endl;
-    if (index_origin == -1 || index_dest == -1) return;
-    List<city_in_graph>& adjacency_list = graph[index_origin];
-    bool found = false;
-    for (Node<city_in_graph>* curr = adjacency_list.getHead(); curr != nullptr; curr = curr->next)
+};
+
+int find_city_by_coords(int x, int y, int width_of_map, Vector<city_t*>& cities)
+{
+    int value = y * width_of_map + x;
+    int start = 0, end = cities.getSize() - 1, middle;
+    while (start <= end)
     {
-        if (curr->data.index == index_dest)
+        middle = (start + end) / 2;
+        int middle_value = cities[middle]->y * width_of_map + cities[middle]->x;
+        if (middle_value == value)
         {
-            if (curr->data.distance > distance)
-            {
-                curr->data.distance = distance;
-            }
-            found = true;
-            break;
+            return middle;
+        } else if (middle_value > value)
+        {
+            end = middle - 1;
+        } else {
+            start = middle + 1;
         }
     }
+    return -1;
+}
 
-    if (!found)
+void dfs_search_adjacency(int index, int width, int height, char** map, List<city_in_graph>* graph, Vector<city_t*>& cities)
+{
+    List<search_node> stack;
+    coord_t directions[4] = {
+        {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+    };
+    search_node start = {cities[index]->x, cities[index]->y, 0};
+    int** visited = new int*[height];
+    for (int i = 0; i < height; i++)
     {
-        adjacency_list.append({index_dest, distance});
+        visited[i] = new int[width];
+        for (int j = 0; j < width; j++)
+        {
+            visited[i][j] = 0;
+        }
     }
-    std::cout << "finish\n";
+    visited[start.y][start.x] = 1;
+    stack.append(start);
+    while ( stack.getSize() != 0)
+    {
+        search_node curr = stack.getTail()->data;
+        stack.removeNode(stack.getTail());
+
+        for (coord_t d: directions)
+        {
+            int nx = curr.x + d.x;
+            int ny = curr.y +  d.y;
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height)
+            {
+                if (visited[ny][nx]) continue;
+                visited[ny][nx] = 1;
+                if (map[ny][nx] == '#')
+                {
+                    stack.append({nx, ny, curr.distance + 1});
+                }
+                else if (map[ny][nx] == '*')
+                {
+                    int found_city_index = find_city_by_coords(nx, ny, width, cities);
+                    insert_into_graph(index, found_city_index, curr.distance+1, graph);
+                }
+            }
+        }
+    }
+    
 }
 
 int main()
@@ -132,6 +118,7 @@ int main()
         // std::cout << city->name << hash(city->name, 0) << std::endl;
         // std::cout << city->name.hash() << std::endl;
         int index = insert_into_hashmap(city->name, i, hashtable);
+        dfs_search_adjacency(i, width, height, map, graph, cities);
         if (index >= 0)
         {
             counter++;
@@ -148,6 +135,8 @@ int main()
     {
         parse_flight(hashtable, graph);
     }
+
+    // std::cout << "At pos (18, 2) " << cities[find_city_by_coords(18, 2, width, cities)]->name << std::endl;
 
 
     for (int i = 0; i < height; i++)
