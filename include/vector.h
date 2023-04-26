@@ -25,6 +25,17 @@ public:
 
     }
 
+    Vector(std::size_t n)
+    : array(new T[n]), size(n), max_size(n){}
+
+    Vector(std::size_t n, T default_value)
+    : Vector(n) {
+        for (std::size_t i = 0; i < size; i++)
+        {
+            array[i] = default_value;
+        }
+    }
+
     void push_back(T elem)
     {
         if (size == max_size)
