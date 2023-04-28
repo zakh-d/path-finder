@@ -1,4 +1,7 @@
 mapa/
+tests/
+tests.py
+program_out/
 build/
 .vscode/
 .DS_Store

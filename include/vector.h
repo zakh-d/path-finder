@@ -25,6 +25,21 @@ public:
 
     }
 
+    Vector(const Vector& other)
+    : array(new T[other.max_size]), size(other.size), max_size(other.max_size){
+        for (int i = 0; i < size; i++)
+        {
+            array[i] = other.array[i];
+        }
+    }
+
+    Vector(Vector&& other)
+    : array(other.array), size(other.size), max_size(other.max_size){
+        other.array = nullptr;
+        other.size = 0;
+        other.max_size = 0;
+    }
+
     Vector(std::size_t n)
     : array(new T[n]), size(n), max_size(n){}
 
@@ -45,12 +60,34 @@ public:
         array[size++] = elem;
     }
 
-    T operator[](std::size_t index)
+    void reverse()
+    {
+        for (int i = 0; i < size / 2; i++)
+        {
+            std::swap(array[i], array[size - i - 1]);
+        }
+    }
+
+    T& operator[](std::size_t index)
     {
         return array[index];
     }
 
-    std::size_t getSize() {
+    T operator[](std::size_t index) const
+    {
+        return array[index];
+    }
+
+    Vector<T>& operator=(const Vector& other)
+    {
+        Vector<T> tmp(other);
+        std::swap(array, tmp.array);
+        std::swap(size, tmp.size);
+        std::swap(max_size, tmp.max_size);
+        return *this;
+    }
+
+    std::size_t getSize() const {
         return size;
     }
 

@@ -87,6 +87,20 @@ public:
         size--;
     }
 
+    void insertAfter(Node<T>* node, T data)
+    {
+        Node<T>* newNode = new Node<T>;
+        newNode->data = data;
+        newNode->next = node->next;
+        newNode->previous = node;
+        if (newNode->next != nullptr)
+        {
+            newNode->next->previous = newNode;
+        }
+        node->next = newNode;
+        size++;
+    }
+
     void remove(std::size_t index)
     {
         Node<T>* node = getNode(index);

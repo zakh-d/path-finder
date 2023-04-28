@@ -7,6 +7,7 @@
 #include "graph.h"
 #include "hashed_city.h"
 #include "parser.h"
+#include "priority_queue.h"
 
 struct search_node {
     int x;
@@ -78,8 +79,107 @@ void dfs_search_adjacency(int index, int width, int height, char** map, List<cit
             }
         }
     }
-    
+
+    for (int i = 0; i < height; i++)
+    {
+        delete[] visited[i];
+    }
+    delete[] visited;
 }
+
+int get_minimun(const Vector<int>& distances, const Vector<bool>& visited)
+{
+    int min = INT_MAX, min_index;
+
+    for (int i = 0; i < distances.getSize(); i++)
+    {
+        if (distances[i] < min && !visited[i])
+        {
+            min = distances[i];
+            min_index = i;
+        }
+    }
+
+    return min_index;
+}
+
+
+struct way {
+    int distance;
+    Vector<int> path;
+};
+
+
+way dijkstra(int source, int dest, int n, List<city_in_graph>* graph)
+{
+    Vector<int> distances(n, INT_MAX);
+    Vector<bool> visited(n, false);
+    Vector<int> prev(n, -1);
+    distances[source] = 0;
+
+    for (int i = 0; i < n - 1; i++)
+    {
+        int u = get_minimun(distances, visited);
+        visited[u] = true;
+
+        if (u == dest) break; // exit loop if destination is reached
+
+        for (Node<city_in_graph>* curr = graph[u].getHead(); curr != nullptr; curr = curr->next)
+        {
+            int v = curr->data.index;
+            int weight = curr->data.distance;
+
+            if (!visited[v] && distances[u] != INT_MAX && distances[u] + weight < distances[v])
+            {
+                distances[v] = distances[u] + weight;
+                prev[v] = u; // keep track of previous node
+            }
+        }
+    }
+
+    Vector<int> path;
+    int current = dest;
+    while (current != -1)
+    {
+        path.push_back(current);
+        current = prev[current];
+    }
+    path.reverse();
+    way result;
+    result.path = path;
+    result.distance = distances[dest];
+    return result;
+}
+
+// Vector<int> dijkstra(int source, int n, List<city_in_graph>* graph)
+// {
+//     Vector<int> distances(n, INT_MAX);
+//     Vector<bool> visited(n, false);
+//     // PriorityQueue pq;
+//     distances[source] = 0;
+
+//     // pq.push({source, 0});
+
+//     for (int i = 0; i < n - 1; i++)
+//     {
+//         int u = get_minimun(distances, visited);
+
+//         visited[u] = true;
+
+//         for (Node<city_in_graph>* curr = graph[u].getHead(); curr != nullptr; curr = curr->next)
+//         {
+//             int v = curr->data.index;
+//             int weight = curr->data.distance;
+
+//             if (!visited[v] && distances[u] != INT_MAX && distances[u] + weight < distances[v])
+//             {
+//                 distances[v] = distances[u] + weight;
+//                 // pq.push({v, distances[v]});
+//             }
+//         }
+//     }
+//     return distances;
+// }
 
 int main()
 {
@@ -106,27 +206,27 @@ int main()
     }
 
     List<city_in_graph>* graph = allocate_adjacency_list(cities.getSize());
-    std::cout << "Total cities: " << cities.getSize() << std::endl;
-    int counter = 0;
 
     hash_node** hashtable = allocate_hash_table();
-    // for (Node<city_t*>* curr = cities.getHead(); curr != nullptr; curr = curr->next, i++)
+
     for (int i = 0; i < cities.getSize(); i++)
     {
         city = cities[i];
         parse_city(map, city, width, height);
-        // std::cout << city->name << hash(city->name, 0) << std::endl;
-        // std::cout << city->name.hash() << std::endl;
-        int index = insert_into_hashmap(city->name, i, hashtable);
-        dfs_search_adjacency(i, width, height, map, graph, cities);
-        if (index >= 0)
+        insert_into_hashmap(city->name, i, hashtable);
+        if (cities.getSize() < 10000)
         {
-            counter++;
-
+            dfs_search_adjacency(i, width, height, map, graph, cities);
         }
     }
 
-    std::cout << "Cities in hash table: " << counter << std::endl;
+
+    for (int i = 0; i < height; i++)
+    {
+        delete[] map[i];
+    }
+    delete[] map;
+
 
     int flightsCount;
     std::cin >> flightsCount;
@@ -136,16 +236,32 @@ int main()
         parse_flight(hashtable, graph);
     }
 
-    // std::cout << "At pos (18, 2) " << cities[find_city_by_coords(18, 2, width, cities)]->name << std::endl;
-
-
-    for (int i = 0; i < height; i++)
+    int connectionsCount;
+    std::cin >> connectionsCount;
+    for (int i = 0; i < connectionsCount; i++)
     {
-        delete[] map[i];
-    }
-    delete[] map;
+        String origin, dest;
+        int mode;
+        std::cin >> origin >> dest >> mode;
 
-    //for (Node<city_t*>* curr = cities.getHead(); curr != nullptr; curr = curr->next)
+        int index_origin = index_of_city(origin, hashtable);
+        int index_dest = index_of_city(dest, hashtable);
+        if (index_origin == -1 || index_dest == -1) continue;
+        way solution = dijkstra(index_origin, index_dest, cities.getSize(), graph);
+        if (mode == 0)
+        {
+            std::cout << solution.distance << std::endl;
+        } else {
+
+            std::cout << solution.distance;
+            for (int j = 1; j < solution.path.getSize() - 1; j++)
+            {
+                std::cout << " " << cities[solution.path[j]]->name;
+            }
+            std::cout << std::endl;
+        }
+    }
+
     for (int i = 0; i < cities.getSize(); i++)
     {
         delete cities[i];
