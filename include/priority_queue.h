@@ -1,6 +1,7 @@
 #pragma once
 
 #include "list.h"
+#include "vector.h"
 
 struct QueueNode 
 {

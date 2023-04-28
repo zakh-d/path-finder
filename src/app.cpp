@@ -36,9 +36,9 @@ int find_city_by_coords(int x, int y, int width_of_map, Vector<city_t*>& cities)
     return -1;
 }
 
-void dfs_search_adjacency(int index, int width, int height, char** map, List<city_in_graph>* graph, Vector<city_t*>& cities)
+void bfs_search_adjacency(int index, int width, int height, char** map, List<city_in_graph>* graph, Vector<city_t*>& cities)
 {
-    List<search_node> stack;
+    List<search_node> queue;
     coord_t directions[4] = {
         {1, 0}, {-1, 0}, {0, 1}, {0, -1}
     };
@@ -53,11 +53,11 @@ void dfs_search_adjacency(int index, int width, int height, char** map, List<cit
         }
     }
     visited[start.y][start.x] = 1;
-    stack.append(start);
-    while ( stack.getSize() != 0)
+    queue.append(start);
+    while ( queue.getSize() != 0)
     {
-        search_node curr = stack.getTail()->data;
-        stack.removeNode(stack.getTail());
+        search_node curr = queue.getHead()->data;
+        queue.removeNode(queue.getHead());
 
         for (coord_t d: directions)
         {
@@ -69,7 +69,7 @@ void dfs_search_adjacency(int index, int width, int height, char** map, List<cit
                 visited[ny][nx] = 1;
                 if (map[ny][nx] == '#')
                 {
-                    stack.append({nx, ny, curr.distance + 1});
+                    queue.append({nx, ny, curr.distance + 1});
                 }
                 else if (map[ny][nx] == '*')
                 {
@@ -151,36 +151,6 @@ way dijkstra(int source, int dest, int n, List<city_in_graph>* graph)
     return result;
 }
 
-// Vector<int> dijkstra(int source, int n, List<city_in_graph>* graph)
-// {
-//     Vector<int> distances(n, INT_MAX);
-//     Vector<bool> visited(n, false);
-//     // PriorityQueue pq;
-//     distances[source] = 0;
-
-//     // pq.push({source, 0});
-
-//     for (int i = 0; i < n - 1; i++)
-//     {
-//         int u = get_minimun(distances, visited);
-
-//         visited[u] = true;
-
-//         for (Node<city_in_graph>* curr = graph[u].getHead(); curr != nullptr; curr = curr->next)
-//         {
-//             int v = curr->data.index;
-//             int weight = curr->data.distance;
-
-//             if (!visited[v] && distances[u] != INT_MAX && distances[u] + weight < distances[v])
-//             {
-//                 distances[v] = distances[u] + weight;
-//                 // pq.push({v, distances[v]});
-//             }
-//         }
-//     }
-//     return distances;
-// }
-
 int main()
 {
     int width, height;
@@ -216,7 +186,7 @@ int main()
         insert_into_hashmap(city->name, i, hashtable);
         if (cities.getSize() < 10000)
         {
-            dfs_search_adjacency(i, width, height, map, graph, cities);
+            bfs_search_adjacency(i, width, height, map, graph, cities);
         }
     }
 
@@ -246,7 +216,10 @@ int main()
 
         int index_origin = index_of_city(origin, hashtable);
         int index_dest = index_of_city(dest, hashtable);
-        if (index_origin == -1 || index_dest == -1) continue;
+
+        if (index_origin == -1 || index_dest == -1) {
+            continue;
+        }
         way solution = dijkstra(index_origin, index_dest, cities.getSize(), graph);
         if (mode == 0)
         {

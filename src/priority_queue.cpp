@@ -54,7 +54,7 @@ void PriorityQueue::heapify(int i)
         maxps = i;
     }
 
-    if (R < size && queue[R].distance.distance < queue[maxps].distance)
+    if (R < size && queue[R].distance < queue[maxps].distance)
     {
         maxps = R;
     }
