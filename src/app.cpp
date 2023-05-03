@@ -111,7 +111,7 @@ struct way {
 way dijkstra(int source, int dest, int n, List<city_in_graph>* graph)
 {
 
-    PriorityQueue pq(3*n);
+    PriorityQueue pq;
     Vector<int> distances(n, INT_MAX);
     Vector<bool> visited(n, false);
     Vector<int> prev(n, -1);

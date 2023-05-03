@@ -1,7 +1,7 @@
 #include "priority_queue.h"
 
-PriorityQueue::PriorityQueue(std::size_t size)
-: queue(size), size(0){}
+PriorityQueue::PriorityQueue()
+:size(0){}
 
 int PriorityQueue::parent(int i)
 {
@@ -21,6 +21,11 @@ int PriorityQueue::right(int i)
 void PriorityQueue::push(QueueNode node)
 {
     size++;
+
+    if (size > queue.getSize())
+    {
+        queue.push_back(node);
+    }
 
     int i = size - 1;
 

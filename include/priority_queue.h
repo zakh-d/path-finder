@@ -24,7 +24,7 @@ class PriorityQueue {
     int right(int i);
     void heapify(int i);
 public:
-    PriorityQueue(std::size_t size);
+    PriorityQueue();
     void push(QueueNode node);
     QueueNode pop();
     std::size_t getSize();
