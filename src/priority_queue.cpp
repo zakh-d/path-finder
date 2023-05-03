@@ -37,7 +37,7 @@ QueueNode PriorityQueue::pop()
     QueueNode min = queue[0];
     queue[0] = queue[size - 1];
     size--;
-    heapify(size - 1);
+    heapify(0);
     return min;
 }
 

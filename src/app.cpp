@@ -110,14 +110,16 @@ struct way {
 
 way dijkstra(int source, int dest, int n, List<city_in_graph>* graph)
 {
+
+    PriorityQueue pq(3*n);
     Vector<int> distances(n, INT_MAX);
     Vector<bool> visited(n, false);
     Vector<int> prev(n, -1);
     distances[source] = 0;
-
-    for (int i = 0; i < n - 1; i++)
+    pq.push(QueueNode(source, 0));
+    while (pq.getSize())
     {
-        int u = get_minimun(distances, visited);
+        int u = pq.pop().index;
         visited[u] = true;
 
         if (u == dest) break; // exit loop if destination is reached
@@ -130,6 +132,7 @@ way dijkstra(int source, int dest, int n, List<city_in_graph>* graph)
             if (!visited[v] && distances[u] != INT_MAX && distances[u] + weight < distances[v])
             {
                 distances[v] = distances[u] + weight;
+                pq.push(QueueNode(v, distances[v]));
                 prev[v] = u; // keep track of previous node
             }
         }
