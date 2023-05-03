@@ -36,23 +36,26 @@ int find_city_by_coords(int x, int y, int width_of_map, Vector<city_t*>& cities)
     return -1;
 }
 
-void bfs_search_adjacency(int index, int width, int height, char** map, List<city_in_graph>* graph, Vector<city_t*>& cities)
+void bfs_search_adjacency(int index, int width, int height, char** map, List<city_in_graph>* graph, Vector<city_t*>& cities, bool** visited)
 {
     List<search_node> queue;
     coord_t directions[4] = {
         {1, 0}, {-1, 0}, {0, 1}, {0, -1}
     };
     search_node start = {cities[index]->x, cities[index]->y, 0};
-    int** visited = new int*[height];
-    for (int i = 0; i < height; i++)
+
+    if (visited[start.y][start.x])
     {
-        visited[i] = new int[width];
-        for (int j = 0; j < width; j++)
+        for (int i = 0; i < height; i++)
         {
-            visited[i][j] = 0;
+            for (int j = 0; j < width; j++)
+            {
+                visited[i][j] = false;
+            }
         }
     }
-    visited[start.y][start.x] = 1;
+
+    visited[start.y][start.x] = true;
     queue.append(start);
     while ( queue.getSize() != 0)
     {
@@ -66,7 +69,7 @@ void bfs_search_adjacency(int index, int width, int height, char** map, List<cit
             if (nx >= 0 && nx < width && ny >= 0 && ny < height)
             {
                 if (visited[ny][nx]) continue;
-                visited[ny][nx] = 1;
+                visited[ny][nx] = true;
                 if (map[ny][nx] == '#')
                 {
                     queue.append({nx, ny, curr.distance + 1});
@@ -75,16 +78,11 @@ void bfs_search_adjacency(int index, int width, int height, char** map, List<cit
                 {
                     int found_city_index = find_city_by_coords(nx, ny, width, cities);
                     insert_into_graph(index, found_city_index, curr.distance+1, graph);
+                    insert_into_graph(found_city_index, index, curr.distance+1, graph);
                 }
             }
         }
     }
-
-    for (int i = 0; i < height; i++)
-    {
-        delete[] visited[i];
-    }
-    delete[] visited;
 }
 
 int get_minimun(const Vector<int>& distances, const Vector<bool>& visited)
@@ -179,17 +177,27 @@ int main()
 
     hash_node** hashtable = allocate_hash_table();
 
+
+    bool** visited = new bool*[height];
+    for (int i = 0; i < height; i++)
+    {
+        visited[i] = new bool[width];
+    }
+
     for (int i = 0; i < cities.getSize(); i++)
     {
         city = cities[i];
         parse_city(map, city, width, height);
         insert_into_hashmap(city->name, i, hashtable);
-        if (cities.getSize() < 10000)
-        {
-            bfs_search_adjacency(i, width, height, map, graph, cities);
-        }
+        bfs_search_adjacency(i, width, height, map, graph, cities, visited);
     }
 
+
+    for (int i = 0; i < height; i++)
+    {
+        delete[] visited[i];
+    }
+    delete[] visited;
 
     for (int i = 0; i < height; i++)
     {
@@ -205,6 +213,8 @@ int main()
     {
         parse_flight(hashtable, graph);
     }
+
+    // std::cout << "Graph filled\n";
 
     int connectionsCount;
     std::cin >> connectionsCount;

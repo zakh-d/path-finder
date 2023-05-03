@@ -23,6 +23,7 @@ int insert_into_hashmap(String& key, int index, hash_node** hash_table)
             return index_in_hashmap;
         }
     }
+    delete node;
     return -1;
 }
 

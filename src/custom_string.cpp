@@ -134,18 +134,6 @@ long long String::hash() const
     return value;
 }
 
-long long String::hash1() const {
-    const int p = 31;
-    const int m = 1000003;
-    long long hash_value = 0;
-    long long p_pow = 1;
-    for (char* curr = str; *curr != '\0'; curr++) {
-        hash_value = (hash_value + (*curr - 'a' + 1) * p_pow) % m;
-        p_pow = (p_pow * p) % m;
-    }
-    return hash_value;
-}
-
 bool String::operator==(const String& other) const 
 {
     return strcmp(str, other.str) == 0;

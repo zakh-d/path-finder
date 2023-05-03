@@ -12,10 +12,20 @@ void parse_city_name(char* line, int x, int width, String& dest)
 {
     int l = x, r = x;
 
-    while (l-1 >= 0 && r + 1 < width &&(is_part_of_name(line[l - 1]) || is_part_of_name(line[r + 1])))
+    // while (l-1 >= 0 && r + 1 < width &&(is_part_of_name(line[l - 1]) || is_part_of_name(line[r + 1])))
+    // {
+    //     if (is_part_of_name(line[l - 1])) l--;
+    //     if (is_part_of_name(line[r + 1])) r++;
+    // }
+
+    while (l-1 >= 0 && is_part_of_name(line[l-1]))
     {
-        if (is_part_of_name(line[l - 1])) l--;
-        if (is_part_of_name(line[r + 1])) r++;
+        l--;
+    }
+
+    while (r+1 < width && is_part_of_name(line[r+1]))
+    {
+        r++;
     }
 
     char tmp = line[r+1];
